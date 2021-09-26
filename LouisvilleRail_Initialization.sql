@@ -17,3 +17,11 @@ GO
 
 USE LouisvilleRailNetwork;
 GO
+
+CREATE TABLE RailLine (
+	LineId int identity(1,1) NOT NULL,
+	RouteName nvarchar(255),
+	CONSTRAINT PK_RailLine PRIMARY KEY RouteId,
+	CONSTRAINT FK_RailLineStops FOREIGN KEY (RouteId) REFERENCES RailLine (LineId)
+);
+GO
