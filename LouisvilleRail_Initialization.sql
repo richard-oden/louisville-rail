@@ -47,3 +47,25 @@ AS
 BEGIN
 	INSERT INTO Line VALUES (@LineName);
 END
+GO
+
+CREATE OR ALTER PROCEDURE CreateStop
+	@StopName varchar(255),
+	@StopAddress varchar(255),
+	@Lattitude decimal(8,6),
+	@Longitude decimal(9,6)
+AS
+BEGIN
+	INSERT INTO [Stop] VALUES (@StopName, @StopAddress, @Lattitude, @Longitude);
+END
+GO
+
+CREATE OR ALTER PROCEDURE CreateLineStop
+	@LineId int,
+	@StopId int,
+	@StopOrder int
+AS
+BEGIN
+	INSERT INTO LineStop VALUES (@LineId, @StopId, @StopOrder);
+END
+GO
