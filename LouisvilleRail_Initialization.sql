@@ -28,8 +28,8 @@ GO
 
 CREATE TABLE Trip (
 	Id int IDENTITY PRIMARY KEY,
-	StartDateTime DateTime,
-	EndDateTime DateTime);
+	StartDateTime datetime,
+	EndDateTime datetime);
 GO
 
 CREATE TABLE TripSegment (
@@ -67,5 +67,42 @@ CREATE OR ALTER PROCEDURE CreateLineStop
 AS
 BEGIN
 	INSERT INTO LineStop VALUES (@LineId, @StopId, @StopOrder);
+END
+GO
+
+CREATE OR ALTER PROCEDURE CreateTripSegment
+	@TripId int,
+	@FirstLineStopId int,
+	@SecondLineStopId int,
+	@DurationInSeconds int,
+	@TripSegmentOrder int
+AS
+BEGIN
+	INSERT INTO TripSegment VALUES (@TripId, @FirstLineStopId, @SecondLineStopId, @DurationInSeconds, @TripSegmentOrder);
+END
+GO
+
+CREATE TYPE TripSegmentType AS TABLE(
+	FirstLineStopId int NOT NULL,
+	SecondLineStopId int NOT NULL,
+	DurationInSeconds int NOT NULL,
+	TripSegmentOrder int NOT NULL);
+GO
+
+CREATE OR ALTER PROCEDURE CreateTrip
+	@StartDateTime datetime,
+	@TripSegments TripSegmentType READONLY
+AS
+BEGIN
+	DECLARE @TripId AS int;
+	DECLARE @EndDateTime AS datetime;
+
+	SET @TripId = MAX(Trip.Id) + 1;
+	SET @EndDateTime = DATEADD(ss, SUM(@TripSegments.DurationInSeconds), @StartDateTime);
+
+	INSERT INTO Trip VALUES (@StartDateTime, @EndDateTime);
+	INSERT INTO TripSegment 
+		SELECT (@TripId, FirstLineStopId, SecondLineStopId, DurationInSeconds, TripSegmentOrder)
+		FROM @TripSegments;
 END
 GO
