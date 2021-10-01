@@ -70,18 +70,6 @@ BEGIN
 END
 GO
 
-CREATE OR ALTER PROCEDURE CreateTripSegment
-	@TripId int,
-	@FirstLineStopId int,
-	@SecondLineStopId int,
-	@DurationInSeconds int,
-	@TripSegmentOrder int
-AS
-BEGIN
-	INSERT INTO TripSegment VALUES (@TripId, @FirstLineStopId, @SecondLineStopId, @DurationInSeconds, @TripSegmentOrder);
-END
-GO
-
 CREATE TYPE TripSegmentType AS TABLE(
 	FirstLineStopId int NOT NULL,
 	SecondLineStopId int NOT NULL,
@@ -97,12 +85,12 @@ BEGIN
 	DECLARE @TripId AS int;
 	DECLARE @EndDateTime AS datetime;
 
-	SET @TripId = MAX(Trip.Id) + 1;
-	SET @EndDateTime = DATEADD(ss, SUM(@TripSegments.DurationInSeconds), @StartDateTime);
+	SELECT @TripId = MAX(Id) + 1 FROM Trip;
+	SELECT @EndDateTime = DATEADD(ss, SUM(DurationInSeconds), @StartDateTime) FROM @TripSegments;
 
 	INSERT INTO Trip VALUES (@StartDateTime, @EndDateTime);
 	INSERT INTO TripSegment 
-		SELECT (@TripId, FirstLineStopId, SecondLineStopId, DurationInSeconds, TripSegmentOrder)
+		SELECT @TripId, FirstLineStopId, SecondLineStopId, DurationInSeconds, TripSegmentOrder
 		FROM @TripSegments;
 END
 GO
