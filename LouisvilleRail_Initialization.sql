@@ -6,6 +6,11 @@ CREATE DATABASE LouisvilleRailNetwork;
 
 USE LouisvilleRailNetwork;
 
+
+---------------------
+------ TABLES -------
+---------------------
+
 CREATE TABLE Line (
 	Id int IDENTITY PRIMARY KEY,
 	[Name] nvarchar(255));
@@ -41,6 +46,12 @@ CREATE TABLE TripSegment (
 	TripSegmentOrder int NOT NULL);
 GO
 
+
+---------------------
+-- CRUD OPERATIONS --
+---------------------
+
+-- Line:
 CREATE OR ALTER PROCEDURE CreateLine
 	@LineName varchar(255)
 AS
@@ -49,6 +60,15 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE ReadLineById
+	@LineId int
+AS
+BEGIN
+	SELECT * FROM Line WHERE Id = @LineId;
+END
+GO
+
+-- Stop:
 CREATE OR ALTER PROCEDURE CreateStop
 	@StopName varchar(255),
 	@StopAddress varchar(255),
@@ -60,6 +80,15 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE ReadStopById
+	@StopId int
+AS
+BEGIN
+	SELECT * FROM [Stop] WHERE Id = @StopId;
+END
+GO
+
+-- LineStop:
 CREATE OR ALTER PROCEDURE CreateLineStop
 	@LineId int,
 	@StopId int,
@@ -70,6 +99,16 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE ReadLineStopById
+	@LineStopId int
+AS
+BEGIN
+	SELECT * FROM LineStop WHERE Id = @LineStopId;
+END
+GO
+
+
+-- Trip and TripSegment:
 CREATE TYPE TripSegmentType AS TABLE(
 	FirstLineStopId int NOT NULL,
 	SecondLineStopId int NOT NULL,
@@ -92,5 +131,21 @@ BEGIN
 	INSERT INTO TripSegment 
 		SELECT @TripId, FirstLineStopId, SecondLineStopId, DurationInSeconds, TripSegmentOrder
 		FROM @TripSegments;
+END
+GO
+
+CREATE OR ALTER PROCEDURE ReadTripById
+	@TripId int
+AS
+BEGIN
+	SELECT * FROM Trip WHERE Id = @TripId;
+END
+GO
+
+CREATE OR ALTER PROCEDURE ReadTripSegmentById
+	@TripSegmentId int
+AS
+BEGIN
+	SELECT * FROM TripSegment WHERE Id = @TripSegmentId;
 END
 GO
