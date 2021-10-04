@@ -61,22 +61,34 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE ReadLineById
-	@LineId int
+	@LineName varchar(255)
 AS
 BEGIN
 	SELECT * FROM Line WHERE Id = @LineId;
 END
 GO
 
+CREATE OR ALTER PROCEDURE UpdateLineById
+	@LineId int,
+	@LineName varchar(255)
+AS
+BEGIN
+	UPDATE Line
+		SET [Name] = @LineName
+	WHERE Id = @LineId;
+END
+GO
+
+
 -- Stop:
 CREATE OR ALTER PROCEDURE CreateStop
 	@StopName varchar(255),
 	@StopAddress varchar(255),
-	@Lattitude decimal(8,6),
+	@Latitude decimal(8,6),
 	@Longitude decimal(9,6)
 AS
 BEGIN
-	INSERT INTO [Stop] VALUES (@StopName, @StopAddress, @Lattitude, @Longitude);
+	INSERT INTO [Stop] VALUES (@StopName, @StopAddress, @Latitude, @Longitude);
 END
 GO
 
@@ -87,6 +99,25 @@ BEGIN
 	SELECT * FROM [Stop] WHERE Id = @StopId;
 END
 GO
+
+CREATE OR ALTER PROCEDURE UpdateStopById
+	@StopId int,
+	@StopName varchar(255) = NULL,
+	@StopAddress varchar(255) = NULL,
+	@Latitude decimal(8,6) = NULL,
+	@Longitude decimal(9,6) = NULL
+AS
+BEGIN
+	UPDATE [STOP]
+		SET 
+			[Name] = COALESCE(@StopName, [Name]),
+			[Address] = COALESCE(@StopAddress, [Address]),
+			Latitude = COALESCE(@Latitude, Latitude),
+			Longitude = COALESCE(@Longitude, Longitude)
+	WHERE Id = @StopId;
+END
+GO
+
 
 -- LineStop:
 CREATE OR ALTER PROCEDURE CreateLineStop
