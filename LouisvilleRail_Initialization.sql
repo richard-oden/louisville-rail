@@ -75,7 +75,7 @@ AS
 BEGIN
 	UPDATE Line
 		SET [Name] = @LineName
-	WHERE Id = @LineId;
+		WHERE Id = @LineId;
 END
 GO
 
@@ -108,13 +108,13 @@ CREATE OR ALTER PROCEDURE UpdateStopById
 	@Longitude decimal(9,6) = NULL
 AS
 BEGIN
-	UPDATE [STOP]
+	UPDATE [Stop]
 		SET 
 			[Name] = COALESCE(@StopName, [Name]),
 			[Address] = COALESCE(@StopAddress, [Address]),
 			Latitude = COALESCE(@Latitude, Latitude),
 			Longitude = COALESCE(@Longitude, Longitude)
-	WHERE Id = @StopId;
+		WHERE Id = @StopId;
 END
 GO
 
@@ -135,6 +135,22 @@ CREATE OR ALTER PROCEDURE ReadLineStopById
 AS
 BEGIN
 	SELECT * FROM LineStop WHERE Id = @LineStopId;
+END
+GO
+
+CREATE OR ALTER PROCEDURE UpdateLineStopById
+	@LineStopId int,
+	@LineId int = NULL,
+	@StopId int = NULL,
+	@StopOrder int = NULL
+AS
+BEGIN
+	UPDATE [LineStop]
+		SET 
+			LineId = COALESCE(@LineId, LineId),
+			StopId = COALESCE(@StopId, StopId),
+			StopOrder = COALESCE(@StopOrder, StopOrder)
+		WHERE Id = @LineStopId;
 END
 GO
 
@@ -178,5 +194,34 @@ CREATE OR ALTER PROCEDURE ReadTripSegmentById
 AS
 BEGIN
 	SELECT * FROM TripSegment WHERE Id = @TripSegmentId;
+END
+GO
+
+CREATE OR ALTER PROCEDURE UpdateTripById
+	@TripId int,
+	@StartDateTime datetime = NULL,
+	@TripSegments TripSegmentType READONLY
+AS
+BEGIN
+	DECLARE @DefaultStartDateTime AS datetime;
+	DECLARE @EndDateTime AS datetime;
+
+	SELECT @DefaultStartDateTime = SELECT StartDateTime FROM Trip WHERE Id = @TripId;
+	SELECT @EndDateTime = DATEADD(ss, SUM(DurationInSeconds), COALESCE(@StartDateTime, @DefaultStartDateTime)) FROM @TripSegments;
+
+	UPDATE Trip
+		SET 
+			StartDateTime = COALESCE(@StartDateTime, StartDateTime),
+			EndDateTime = @EndDateTime,
+		WHERE Id = @TripId;
+
+	UPDATE TripSegment
+		SET
+			FirstLineStopId
+			SecondLineStopId
+			DurationInSeconds
+			TripSegmentOrder
+
+		WHERE TripId = 
 END
 GO
