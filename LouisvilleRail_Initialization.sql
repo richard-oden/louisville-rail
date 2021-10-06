@@ -61,7 +61,7 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE ReadLineById
-	@LineName varchar(255)
+	@LineId int
 AS
 BEGIN
 	SELECT * FROM Line WHERE Id = @LineId;
@@ -142,14 +142,14 @@ CREATE OR ALTER PROCEDURE UpdateLineStopById
 	@LineStopId int,
 	@LineId int = NULL,
 	@StopId int = NULL,
-	@StopOrder int = NULL
+	@LineStopOrder int = NULL
 AS
 BEGIN
 	UPDATE [LineStop]
 		SET 
 			LineId = COALESCE(@LineId, LineId),
 			StopId = COALESCE(@StopId, StopId),
-			StopOrder = COALESCE(@StopOrder, StopOrder)
+			LineStopOrder = COALESCE(@LineStopOrder, LineStopOrder)
 		WHERE Id = @LineStopId;
 END
 GO
@@ -197,31 +197,40 @@ BEGIN
 END
 GO
 
+-- Trip and TripSegment:
+CREATE TYPE TripSegmentTypeWithId AS TABLE(
+	Id int NOT NULL,
+	FirstLineStopId int,
+	SecondLineStopId int,
+	DurationInSeconds int,
+	TripSegmentOrder int);
+GO
+
 CREATE OR ALTER PROCEDURE UpdateTripById
 	@TripId int,
 	@StartDateTime datetime = NULL,
-	@TripSegments TripSegmentType READONLY
+	@TripSegmentsWithId TripSegmentTypeWithId READONLY
 AS
 BEGIN
 	DECLARE @DefaultStartDateTime AS datetime;
 	DECLARE @EndDateTime AS datetime;
 
-	SELECT @DefaultStartDateTime = SELECT StartDateTime FROM Trip WHERE Id = @TripId;
-	SELECT @EndDateTime = DATEADD(ss, SUM(DurationInSeconds), COALESCE(@StartDateTime, @DefaultStartDateTime)) FROM @TripSegments;
+	SELECT @DefaultStartDateTime = StartDateTime FROM Trip WHERE Id = @TripId;
+	SELECT @EndDateTime = DATEADD(ss, SUM(DurationInSeconds), COALESCE(@StartDateTime, @DefaultStartDateTime)) FROM @TripSegmentsWithId;
 
 	UPDATE Trip
 		SET 
 			StartDateTime = COALESCE(@StartDateTime, StartDateTime),
-			EndDateTime = @EndDateTime,
+			EndDateTime = @EndDateTime
 		WHERE Id = @TripId;
 
-	UPDATE TripSegment
+	UPDATE TS1
 		SET
-			FirstLineStopId
-			SecondLineStopId
-			DurationInSeconds
-			TripSegmentOrder
-
-		WHERE TripId = 
+			TS1.FirstLineStopId = COALESCE(TS2.FirstLineStopId, TS1.FirstLineStopId),
+			TS1.SecondLineStopId = COALESCE(TS2.SecondLineStopId, TS1.SecondLineStopId),
+			TS1.DurationInSeconds = COALESCE(TS2.DurationInSeconds, TS1.DurationInSeconds),
+			TS1.TripSegmentOrder = COALESCE(TS2.TripSegmentOrder, TS1.TripSegmentOrder)
+		FROM TripSegment TS1, @TripSegmentsWithId TS2
+		WHERE TS1.Id = TS2.Id
 END
 GO
