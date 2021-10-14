@@ -13,7 +13,8 @@ USE LouisvilleRailNetwork;
 
 CREATE TABLE Line (
 	Id int IDENTITY PRIMARY KEY,
-	[Name] nvarchar(255));
+	[Name] varchar(255),
+	Color varchar(255));
 GO
 
 CREATE TABLE [Stop] (
@@ -53,7 +54,8 @@ GO
 
 -- Line:
 CREATE OR ALTER PROCEDURE CreateLine
-	@LineName varchar(255)
+	@LineName varchar(255),
+	@LineColor varchar(255)
 AS
 BEGIN
 	INSERT INTO Line VALUES (@LineName);
@@ -70,11 +72,14 @@ GO
 
 CREATE OR ALTER PROCEDURE UpdateLineById
 	@LineId int,
-	@LineName varchar(255)
+	@LineName varchar(255) = NULL,
+	@LineColor varchar(255) = NULL
 AS
 BEGIN
 	UPDATE Line
-		SET [Name] = @LineName
+		SET 
+			[Name] = COALESCE(@LineName, [Name]),
+			Color = COALESCE(@LineColor, Color)
 		WHERE Id = @LineId;
 END
 GO
