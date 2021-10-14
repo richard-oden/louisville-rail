@@ -61,7 +61,7 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE ReadLineById
-	@LineId int
+	@LineId int 
 AS
 BEGIN
 	SELECT * FROM Line WHERE Id = @LineId;
@@ -76,6 +76,14 @@ BEGIN
 	UPDATE Line
 		SET [Name] = @LineName
 		WHERE Id = @LineId;
+END
+GO
+
+CREATE OR ALTER PROCEDURE DeleteLineById
+	@LineId int 
+AS
+BEGIN
+	DELETE FROM Line WHERE Id = @LineId;
 END
 GO
 
@@ -118,6 +126,14 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE DeleteStopById
+	@StopId int
+AS
+BEGIN
+	DELETE FROM [Stop] WHERE Id = @StopId;
+END
+GO
+
 
 -- LineStop:
 CREATE OR ALTER PROCEDURE CreateLineStop
@@ -154,6 +170,14 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE DeleteLineStopById
+	@LineStopId int
+AS
+BEGIN
+	DELETE FROM LineStop WHERE Id = @LineStopId;
+END
+GO
+
 
 -- Trip and TripSegment:
 CREATE TYPE TripSegmentType AS TABLE(
@@ -161,6 +185,14 @@ CREATE TYPE TripSegmentType AS TABLE(
 	SecondLineStopId int NOT NULL,
 	DurationInSeconds int NOT NULL,
 	TripSegmentOrder int NOT NULL);
+GO
+
+CREATE TYPE TripSegmentTypeWithId AS TABLE(
+	Id int NOT NULL,
+	FirstLineStopId int,
+	SecondLineStopId int,
+	DurationInSeconds int,
+	TripSegmentOrder int);
 GO
 
 CREATE OR ALTER PROCEDURE CreateTrip
@@ -197,15 +229,6 @@ BEGIN
 END
 GO
 
--- Trip and TripSegment:
-CREATE TYPE TripSegmentTypeWithId AS TABLE(
-	Id int NOT NULL,
-	FirstLineStopId int,
-	SecondLineStopId int,
-	DurationInSeconds int,
-	TripSegmentOrder int);
-GO
-
 CREATE OR ALTER PROCEDURE UpdateTripById
 	@TripId int,
 	@StartDateTime datetime = NULL,
@@ -234,3 +257,25 @@ BEGIN
 		WHERE TS1.Id = TS2.Id
 END
 GO
+
+CREATE OR ALTER PROCEDURE DeleteTripById
+	@TripId int
+AS
+BEGIN
+	DELETE FROM Trip WHERE Id = @TripId;
+	DELETE FROM TripSegment WHERE TripId = @TripId;
+END
+GO
+
+BULK INSERT [Stop]
+FROM 'C:\Users\richa\Desktop\sql-projects\LouisvilleRail\Stops.csv'
+WITH
+(
+	FIRSTROW = 2,
+	FIELDTERMINATOR = ',',  --CSV field delimiter
+	ROWTERMINATOR = '\n',   --Use to shift the control to next row
+	TABLOCK
+);
+GO
+
+SELECT * FROM [Stop];
