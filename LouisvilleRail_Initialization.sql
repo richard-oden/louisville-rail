@@ -58,7 +58,7 @@ CREATE OR ALTER PROCEDURE CreateLine
 	@LineColor varchar(255)
 AS
 BEGIN
-	INSERT INTO Line VALUES (@LineName);
+	INSERT INTO Line VALUES (@LineName, @LineColor);
 END
 GO
 
@@ -272,6 +272,17 @@ BEGIN
 END
 GO
 
+BULK INSERT Line
+FROM 'C:\Users\richa\Desktop\sql-projects\LouisvilleRail\Lines.csv'
+WITH
+(
+	FIRSTROW = 2,
+	FIELDTERMINATOR = ',',  --CSV field delimiter
+	ROWTERMINATOR = '\n',   --Use to shift the control to next row
+	TABLOCK
+);
+GO
+
 BULK INSERT [Stop]
 FROM 'C:\Users\richa\Desktop\sql-projects\LouisvilleRail\Stops.csv'
 WITH
@@ -284,3 +295,4 @@ WITH
 GO
 
 SELECT * FROM [Stop];
+SELECT * FROM Line;
