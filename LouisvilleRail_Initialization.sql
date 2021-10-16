@@ -272,13 +272,17 @@ BEGIN
 END
 GO
 
+---------------------
+-------- ETL --------
+---------------------
+
 BULK INSERT Line
 FROM 'C:\Users\richa\Desktop\sql-projects\LouisvilleRail\Lines.csv'
 WITH
 (
 	FIRSTROW = 2,
-	FIELDTERMINATOR = ',',  --CSV field delimiter
-	ROWTERMINATOR = '\n',   --Use to shift the control to next row
+	FIELDTERMINATOR = ',',
+	ROWTERMINATOR = '\n',
 	TABLOCK
 );
 GO
@@ -288,8 +292,8 @@ FROM 'C:\Users\richa\Desktop\sql-projects\LouisvilleRail\Stops.csv'
 WITH
 (
 	FIRSTROW = 2,
-	FIELDTERMINATOR = ',',  --CSV field delimiter
-	ROWTERMINATOR = '\n',   --Use to shift the control to next row
+	FIELDTERMINATOR = ',',
+	ROWTERMINATOR = '\n',
 	TABLOCK
 );
 GO
