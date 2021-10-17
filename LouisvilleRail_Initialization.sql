@@ -298,5 +298,15 @@ WITH
 );
 GO
 
-SELECT * FROM [Stop];
-SELECT * FROM Line;
+BULK INSERT LineStop
+FROM 'C:\Users\richa\Desktop\sql-projects\LouisvilleRail\LineStops.csv'
+WITH
+(
+	FIRSTROW = 2,
+	FIELDTERMINATOR = ',',
+	ROWTERMINATOR = '\n',
+	TABLOCK
+);
+GO
+
+SELECT * FROM LineStop;
