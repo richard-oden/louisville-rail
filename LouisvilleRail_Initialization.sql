@@ -64,6 +64,24 @@ CREATE NONCLUSTERED INDEX IX_TripSegment_TripId
 	ON TripSegment(TripId ASC);
 GO
 
+----------------------
+-- HELPER FUNCTIONS --
+----------------------
+
+CREATE FUNCTION GetDistanceInFeet
+(   
+    @Lat1 decimal(8,6), 
+	@Lon1 decimal(9,6), 
+	@Lat2 decimal(8,6), 
+	@Lon2 decimal(9,6)
+)
+RETURNS TABLE 
+AS
+RETURN 
+    SELECT GEOGRAPHY::Point(@Lat1, @Lon1, 4738).STDistance(GEOGRAPHY::Point(@Lat2, @Lon2, 4738))
+	AS Distance;
+GO
+
 
 ---------------------
 -- CRUD OPERATIONS --
@@ -289,6 +307,7 @@ BEGIN
 END
 GO
 
+
 ---------------------
 -------- ETL --------
 ---------------------
@@ -327,3 +346,6 @@ WITH
 GO
 
 SELECT * FROM LineStop;
+
+SELECT *
+FROM sys.spatial_reference_systems WHERE unit_of_measure LIKE '%foot%';
