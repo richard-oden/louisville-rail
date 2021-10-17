@@ -47,6 +47,18 @@ CREATE TABLE TripSegment (
 	TripSegmentOrder int NOT NULL);
 GO
 
+CREATE NONCLUSTERED INDEX IX_TripSegment_TripId
+	ON TripSegment(TripId ASC);
+GO
+
+CREATE NONCLUSTERED INDEX IX_Stop_Latitude
+	ON [Stop](Latitude ASC);
+GO
+
+CREATE NONCLUSTERED INDEX IX_Stop_Longitude
+	ON [Stop](Longitude ASC);
+GO
+
 
 ---------------------
 -- CRUD OPERATIONS --
