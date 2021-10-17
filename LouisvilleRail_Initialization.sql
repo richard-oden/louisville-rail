@@ -25,11 +25,21 @@ CREATE TABLE [Stop] (
 	Longitude decimal(9,6) NOT NULL);
 GO
 
+CREATE NONCLUSTERED INDEX IX_Stop_Latitude
+	ON [Stop](Latitude ASC);
+GO
+
+CREATE NONCLUSTERED INDEX IX_Stop_Longitude
+	ON [Stop](Longitude ASC);
+GO
+
 CREATE TABLE LineStop (
 	Id int IDENTITY PRIMARY KEY,
 	LineId int NOT NULL FOREIGN KEY REFERENCES Line(Id),
 	StopId int NOT NULL FOREIGN KEY REFERENCES [Stop](Id),
-	LineStopOrder int NOT NULL);
+	LineStopOrder int NOT NULL,
+	
+	CHECK (LineStopOrder > 0));
 GO
 
 CREATE TABLE Trip (
@@ -44,19 +54,14 @@ CREATE TABLE TripSegment (
 	FirstLineStopId int NOT NULL FOREIGN KEY REFERENCES LineStop(Id),
 	SecondLineStopId int NOT NULL FOREIGN KEY REFERENCES LineStop(Id),
 	DurationInSeconds int NOT NULL,
-	TripSegmentOrder int NOT NULL);
+	TripSegmentOrder int NOT NULL,
+	
+	CHECK (DurationInSeconds > 0),
+	CHECK (TripSegmentOrder > 0));
 GO
 
 CREATE NONCLUSTERED INDEX IX_TripSegment_TripId
 	ON TripSegment(TripId ASC);
-GO
-
-CREATE NONCLUSTERED INDEX IX_Stop_Latitude
-	ON [Stop](Latitude ASC);
-GO
-
-CREATE NONCLUSTERED INDEX IX_Stop_Longitude
-	ON [Stop](Longitude ASC);
 GO
 
 
