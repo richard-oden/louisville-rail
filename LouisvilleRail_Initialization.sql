@@ -79,20 +79,31 @@ RETURNS TABLE
 AS
 RETURN 
     SELECT GEOGRAPHY::Point(@Lat1, @Lon1, 4738).STDistance(GEOGRAPHY::Point(@Lat2, @Lon2, 4738))
-	AS Distance;
+	AS DistanceInFeet;
 GO
 
 CREATE FUNCTION FormatDistance
 (
-	@distanceInFeet float
+	@DistanceInFeet float
 )
 RETURNS TABLE
 AS
 RETURN
-	SELECT IIF(@distanceInFeet >= 5280, ROUND(@distanceInFeet / 5280, 2) + ' miles', @distanceInFeet + ' feet')
+	SELECT IIF(@DistanceInFeet >= 5280, ROUND(@DistanceInFeet / 5280, 2) + ' miles', @DistanceInFeet + ' feet')
 	AS FormattedDistance;
 GO
 
+CREATE FUNCTION PredictDurationInMinutes
+(
+	@DistanceInFeet float,
+	@MilesPerHour float = 10
+)
+RETURNS TABLE
+AS
+RETURN
+	SELECT ((@DistanceInFeet / 5280) / @MilesPerHour) * 60
+	AS DurationInMinutes;
+GO
 
 ---------------------
 -- CRUD OPERATIONS --
