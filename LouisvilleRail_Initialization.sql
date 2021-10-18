@@ -82,6 +82,17 @@ RETURN
 	AS Distance;
 GO
 
+CREATE FUNCTION FormatDistance
+(
+	@distanceInFeet float
+)
+RETURNS TABLE
+AS
+RETURN
+	SELECT IIF(@distanceInFeet >= 5280, ROUND(@distanceInFeet / 5280, 2) + ' miles', @distanceInFeet + ' feet')
+	AS FormattedDistance;
+GO
+
 
 ---------------------
 -- CRUD OPERATIONS --
