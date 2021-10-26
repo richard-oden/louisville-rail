@@ -51,8 +51,8 @@ GO
 CREATE TABLE TripSegment (
 	Id int IDENTITY PRIMARY KEY,
 	TripId int NOT NULL FOREIGN KEY REFERENCES Trip(Id),
-	FirstLineStopId int NOT NULL FOREIGN KEY REFERENCES LineStop(Id),
-	SecondLineStopId int NOT NULL FOREIGN KEY REFERENCES LineStop(Id),
+	FirstStopId int NOT NULL FOREIGN KEY REFERENCES LineStop(Id),
+	SecondStopId int NOT NULL FOREIGN KEY REFERENCES LineStop(Id),
 	DurationInSeconds int NOT NULL,
 	TripSegmentOrder int NOT NULL,
 	
@@ -68,7 +68,7 @@ GO
 -- HELPER FUNCTIONS --
 ----------------------
 
-CREATE FUNCTION GetDistanceInFeet
+CREATE OR ALTER FUNCTION GetDistanceInFeet
 (   
     @Lat1 decimal(8,6), 
 	@Lon1 decimal(9,6), 
@@ -82,7 +82,7 @@ RETURN
 	AS DistanceInFeet;
 GO
 
-CREATE FUNCTION FormatDistance
+CREATE OR ALTER FUNCTION FormatDistance
 (
 	@DistanceInFeet float
 )
@@ -93,7 +93,7 @@ RETURN
 	AS FormattedDistance;
 GO
 
-CREATE FUNCTION PredictDurationInMinutes
+CREATE OR ALTER FUNCTION PredictDurationInSeconds
 (
 	@DistanceInFeet float,
 	@MilesPerHour float = 10
@@ -101,8 +101,8 @@ CREATE FUNCTION PredictDurationInMinutes
 RETURNS TABLE
 AS
 RETURN
-	SELECT ((@DistanceInFeet / 5280) / @MilesPerHour) * 60
-	AS DurationInMinutes;
+	SELECT CAST(ROUND(((@DistanceInFeet / 5280) / @MilesPerHour) * 360, 0) AS int)
+	AS DurationInSeconds;
 GO
 
 ---------------------
@@ -243,16 +243,15 @@ GO
 
 -- Trip and TripSegment:
 CREATE TYPE TripSegmentType AS TABLE(
-	FirstLineStopId int NOT NULL,
-	SecondLineStopId int NOT NULL,
-	DurationInSeconds int NOT NULL,
+	FirstStopId int NOT NULL,
+	SecondStopId int NOT NULL,
 	TripSegmentOrder int NOT NULL);
 GO
 
 CREATE TYPE TripSegmentTypeWithId AS TABLE(
 	Id int NOT NULL,
-	FirstLineStopId int,
-	SecondLineStopId int,
+	FirstStopId int,
+	SecondStopId int,
 	DurationInSeconds int,
 	TripSegmentOrder int);
 GO
@@ -266,12 +265,28 @@ BEGIN
 	DECLARE @EndDateTime AS datetime;
 
 	SELECT @TripId = MAX(Id) + 1 FROM Trip;
-	SELECT @EndDateTime = DATEADD(ss, SUM(DurationInSeconds), @StartDateTime) FROM @TripSegments;
 
-	INSERT INTO Trip VALUES (@StartDateTime, @EndDateTime);
-	INSERT INTO TripSegment 
-		SELECT @TripId, FirstLineStopId, SecondLineStopId, DurationInSeconds, TripSegmentOrder
+	PRINT 'TripId: ' + CAST(@TripId as varchar);
+	
+	INSERT INTO TripSegment (TripId, FirstStopId, SecondStopId, DurationInSeconds, TripSegmentOrder)
+		SELECT 
+			@TripId, 
+			FirstStopId, 
+			SecondStopId, 
+			(SELECT DurationInSeconds FROM PredictDurationInSeconds(
+				(SELECT DistanceInFeet FROM GetDistanceInFeet(
+					(SELECT Latitude FROM [Stop] WHERE Id = FirstStopId),
+					(SELECT Longitude FROM [Stop] WHERE Id = FirstStopId),
+					(SELECT Latitude FROM [Stop] WHERE Id = SecondStopId),
+					(SELECT Longitude FROM [Stop] WHERE Id = SecondStopId)
+				)),
+				default
+			)), 
+			TripSegmentOrder
 		FROM @TripSegments;
+
+	SELECT @EndDateTime = DATEADD(ss, (SELECT SUM(DurationInSeconds) FROM TripSegment WHERE TripId = @TripId), @StartDateTime) FROM @TripSegments;
+	INSERT INTO Trip VALUES (@StartDateTime, @EndDateTime);
 END
 GO
 
@@ -311,8 +326,8 @@ BEGIN
 
 	UPDATE TS1
 		SET
-			TS1.FirstLineStopId = COALESCE(TS2.FirstLineStopId, TS1.FirstLineStopId),
-			TS1.SecondLineStopId = COALESCE(TS2.SecondLineStopId, TS1.SecondLineStopId),
+			TS1.FirstStopId = COALESCE(TS2.FirstStopId, TS1.FirstStopId),
+			TS1.SecondStopId = COALESCE(TS2.SecondStopId, TS1.SecondStopId),
 			TS1.DurationInSeconds = COALESCE(TS2.DurationInSeconds, TS1.DurationInSeconds),
 			TS1.TripSegmentOrder = COALESCE(TS2.TripSegmentOrder, TS1.TripSegmentOrder)
 		FROM TripSegment TS1, @TripSegmentsWithId TS2
@@ -367,7 +382,25 @@ WITH
 );
 GO
 
-SELECT * FROM LineStop;
+DECLARE @TripSegments1 TripSegmentType;
+INSERT INTO @TripSegments1
+VALUES
+	(6, 7, 1),
+	(7, 8, 2),
+	(8, 9, 3),
+	(10, 11, 4),
+	(11, 12, 5)
 
-SELECT *
-FROM sys.spatial_reference_systems WHERE unit_of_measure LIKE '%foot%';
+EXEC CreateTrip 
+	@StartDateTime = '2021-10-19 10:17:30',
+	@TripSegments = @TripSegments1
+
+--SELECT
+--	ls.LineId, ls.StopId, s.[Name], ls.LineStopOrder
+--FROM [Stop] s
+--INNER JOIN LineStop ls ON ls.StopId = s.Id
+--INNER JOIN Line l ON l.Id = ls.LineId
+--ORDER BY l.Id, ls.LineStopOrder;
+--GO
+
+SELECT * FROM TripSegment;
