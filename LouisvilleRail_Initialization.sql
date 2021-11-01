@@ -53,10 +53,10 @@ CREATE TABLE TripSegment (
 	TripId int NOT NULL FOREIGN KEY REFERENCES Trip(Id),
 	FirstStopId int NOT NULL FOREIGN KEY REFERENCES LineStop(Id),
 	SecondStopId int NOT NULL FOREIGN KEY REFERENCES LineStop(Id),
-	DurationInSeconds int NOT NULL,
+	StartDateTime datetime,
+	EndDateTime datetime,
 	TripSegmentOrder int NOT NULL,
 	
-	CHECK (DurationInSeconds > 0),
 	CHECK (TripSegmentOrder > 0));
 GO
 
@@ -91,18 +91,6 @@ AS
 RETURN
 	SELECT IIF(@DistanceInFeet >= 5280, ROUND(@DistanceInFeet / 5280, 2) + ' miles', @DistanceInFeet + ' feet')
 	AS FormattedDistance;
-GO
-
-CREATE OR ALTER FUNCTION PredictDurationInSeconds
-(
-	@DistanceInFeet float,
-	@MilesPerHour float = 10
-)
-RETURNS TABLE
-AS
-RETURN
-	SELECT CAST(ROUND(((@DistanceInFeet / 5280) / @MilesPerHour) * 360, 0) AS int)
-	AS DurationInSeconds;
 GO
 
 ---------------------
@@ -241,51 +229,12 @@ END
 GO
 
 
--- Trip and TripSegment:
-CREATE TYPE TripSegmentType AS TABLE(
-	FirstStopId int NOT NULL,
-	SecondStopId int NOT NULL,
-	TripSegmentOrder int NOT NULL);
-GO
-
-CREATE TYPE TripSegmentTypeWithId AS TABLE(
-	Id int NOT NULL,
-	FirstStopId int,
-	SecondStopId int,
-	DurationInSeconds int,
-	TripSegmentOrder int);
-GO
-
+-- Trip:
 CREATE OR ALTER PROCEDURE CreateTrip
 	@StartDateTime datetime,
-	@TripSegments TripSegmentType READONLY
+	@EndDateTime datetime
 AS
 BEGIN
-	DECLARE @TripId AS int;
-	DECLARE @EndDateTime AS datetime;
-
-	SELECT @TripId = MAX(Id) + 1 FROM Trip;
-
-	PRINT 'TripId: ' + CAST(@TripId as varchar);
-	
-	INSERT INTO TripSegment (TripId, FirstStopId, SecondStopId, DurationInSeconds, TripSegmentOrder)
-		SELECT 
-			@TripId, 
-			FirstStopId, 
-			SecondStopId, 
-			(SELECT DurationInSeconds FROM PredictDurationInSeconds(
-				(SELECT DistanceInFeet FROM GetDistanceInFeet(
-					(SELECT Latitude FROM [Stop] WHERE Id = FirstStopId),
-					(SELECT Longitude FROM [Stop] WHERE Id = FirstStopId),
-					(SELECT Latitude FROM [Stop] WHERE Id = SecondStopId),
-					(SELECT Longitude FROM [Stop] WHERE Id = SecondStopId)
-				)),
-				default
-			)), 
-			TripSegmentOrder
-		FROM @TripSegments;
-
-	SELECT @EndDateTime = DATEADD(ss, (SELECT SUM(DurationInSeconds) FROM TripSegment WHERE TripId = @TripId), @StartDateTime) FROM @TripSegments;
 	INSERT INTO Trip VALUES (@StartDateTime, @EndDateTime);
 END
 GO
@@ -298,40 +247,17 @@ BEGIN
 END
 GO
 
-CREATE OR ALTER PROCEDURE ReadTripSegmentById
-	@TripSegmentId int
-AS
-BEGIN
-	SELECT * FROM TripSegment WHERE Id = @TripSegmentId;
-END
-GO
-
 CREATE OR ALTER PROCEDURE UpdateTripById
 	@TripId int,
 	@StartDateTime datetime = NULL,
-	@TripSegmentsWithId TripSegmentTypeWithId READONLY
+	@EndDateTime datetime = NULL
 AS
 BEGIN
-	DECLARE @DefaultStartDateTime AS datetime;
-	DECLARE @EndDateTime AS datetime;
-
-	SELECT @DefaultStartDateTime = StartDateTime FROM Trip WHERE Id = @TripId;
-	SELECT @EndDateTime = DATEADD(ss, SUM(DurationInSeconds), COALESCE(@StartDateTime, @DefaultStartDateTime)) FROM @TripSegmentsWithId;
-
-	UPDATE Trip
+	UPDATE [Trip]
 		SET 
 			StartDateTime = COALESCE(@StartDateTime, StartDateTime),
-			EndDateTime = @EndDateTime
+			EndDateTime = COALESCE(@EndDateTime, EndDateTime)
 		WHERE Id = @TripId;
-
-	UPDATE TS1
-		SET
-			TS1.FirstStopId = COALESCE(TS2.FirstStopId, TS1.FirstStopId),
-			TS1.SecondStopId = COALESCE(TS2.SecondStopId, TS1.SecondStopId),
-			TS1.DurationInSeconds = COALESCE(TS2.DurationInSeconds, TS1.DurationInSeconds),
-			TS1.TripSegmentOrder = COALESCE(TS2.TripSegmentOrder, TS1.TripSegmentOrder)
-		FROM TripSegment TS1, @TripSegmentsWithId TS2
-		WHERE TS1.Id = TS2.Id
 END
 GO
 
@@ -340,10 +266,61 @@ CREATE OR ALTER PROCEDURE DeleteTripById
 AS
 BEGIN
 	DELETE FROM Trip WHERE Id = @TripId;
-	DELETE FROM TripSegment WHERE TripId = @TripId;
 END
 GO
 
+
+-- Trip Segment:
+CREATE OR ALTER PROCEDURE CreateTripSegment
+	@TripId int,
+	@FirstStopId int,
+	@SecondStopId int,
+	@StartDateTime datetime,
+	@EndDateTime datetime,
+	@TripSegmentOrder int
+AS
+BEGIN
+	INSERT INTO TripSegment VALUES (@TripId, @FirstStopId, @SecondStopId, @StartDateTime, @EndDateTime, @TripSegmentOrder);
+END
+GO
+
+CREATE OR ALTER PROCEDURE ReadTripSegmentById
+	@TripSegmentId int
+AS
+BEGIN
+	SELECT * FROM TripSegment WHERE Id = @TripSegmentId;
+END
+GO
+
+CREATE OR ALTER PROCEDURE UpdateTripSegmentById
+	@TripSegmentId int,
+	@TripId int = NULL,
+	@FirstStopId int = NULL,
+	@SecondStopId int = NULL,
+	@StartDateTime datetime = NULL,
+	@EndDateTime datetime = NULL,
+	@TripSegmentOrder int = NULL
+AS
+BEGIN
+	UPDATE [TripSegment]
+		SET 
+			TripId = COALESCE(@TripId, TripId),
+			FirstStopId = COALESCE(@FirstStopId, FirstStopId),
+			SecondStopId = COALESCE(@SecondStopId, SecondStopId),
+			StartDateTime = COALESCE(@StartDateTime, StartDateTime),
+			EndDateTime = COALESCE(@EndDateTime, EndDateTime),
+			TripSegmentOrder = COALESCE(@TripSegmentOrder, TripSegmentOrder)
+		WHERE Id = @TripSegmentId;
+END
+GO
+
+CREATE OR ALTER PROCEDURE DeleteTripSegmentById
+	@TripSegmentId int
+AS
+BEGIN
+	DELETE FROM TripSegment WHERE Id = @TripSegmentId;
+END
+GO
 
 ---------------------
 -------- ETL --------
@@ -381,26 +358,3 @@ WITH
 	TABLOCK
 );
 GO
-
-DECLARE @TripSegments1 TripSegmentType;
-INSERT INTO @TripSegments1
-VALUES
-	(6, 7, 1),
-	(7, 8, 2),
-	(8, 9, 3),
-	(10, 11, 4),
-	(11, 12, 5)
-
-EXEC CreateTrip 
-	@StartDateTime = '2021-10-19 10:17:30',
-	@TripSegments = @TripSegments1
-
---SELECT
---	ls.LineId, ls.StopId, s.[Name], ls.LineStopOrder
---FROM [Stop] s
---INNER JOIN LineStop ls ON ls.StopId = s.Id
---INNER JOIN Line l ON l.Id = ls.LineId
---ORDER BY l.Id, ls.LineStopOrder;
---GO
-
-SELECT * FROM TripSegment;
