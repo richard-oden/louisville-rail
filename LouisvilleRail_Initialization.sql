@@ -45,9 +45,9 @@ GO
 CREATE TABLE Trip (
 	Id int IDENTITY PRIMARY KEY,
 	StartDateTime datetime,
-	EndDateTime datetime
-
-	CHECK (EndDateTime > StartDateTime));
+	EndDateTime datetime,
+	
+	CONSTRAINT CK_Trip_ValidDateTimes CHECK(StartDateTime < EndDateTime));
 GO
 
 CREATE TABLE TripSegment (
@@ -56,9 +56,9 @@ CREATE TABLE TripSegment (
 	FirstStopId int NOT NULL FOREIGN KEY REFERENCES LineStop(Id),
 	SecondStopId int NOT NULL FOREIGN KEY REFERENCES LineStop(Id),
 	StartDateTime datetime,
-	EndDateTime datetime
+	EndDateTime datetime,
 	
-	CHECK (EndDateTime > StartDateTime));
+	CONSTRAINT CK_TripSegment_ValidDateTimes CHECK(StartDateTime < EndDateTime));
 GO
 
 CREATE NONCLUSTERED INDEX IX_TripSegment_TripId
