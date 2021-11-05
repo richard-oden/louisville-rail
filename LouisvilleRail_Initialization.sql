@@ -45,7 +45,9 @@ GO
 CREATE TABLE Trip (
 	Id int IDENTITY PRIMARY KEY,
 	StartDateTime datetime,
-	EndDateTime datetime);
+	EndDateTime datetime
+
+	CHECK (EndDateTime > StartDateTime));
 GO
 
 CREATE TABLE TripSegment (
@@ -54,10 +56,9 @@ CREATE TABLE TripSegment (
 	FirstStopId int NOT NULL FOREIGN KEY REFERENCES LineStop(Id),
 	SecondStopId int NOT NULL FOREIGN KEY REFERENCES LineStop(Id),
 	StartDateTime datetime,
-	EndDateTime datetime,
-	TripSegmentOrder int NOT NULL,
+	EndDateTime datetime
 	
-	CHECK (TripSegmentOrder > 0));
+	CHECK (EndDateTime > StartDateTime));
 GO
 
 CREATE NONCLUSTERED INDEX IX_TripSegment_TripId
@@ -276,11 +277,10 @@ CREATE OR ALTER PROCEDURE CreateTripSegment
 	@FirstStopId int,
 	@SecondStopId int,
 	@StartDateTime datetime,
-	@EndDateTime datetime,
-	@TripSegmentOrder int
+	@EndDateTime datetime
 AS
 BEGIN
-	INSERT INTO TripSegment VALUES (@TripId, @FirstStopId, @SecondStopId, @StartDateTime, @EndDateTime, @TripSegmentOrder);
+	INSERT INTO TripSegment VALUES (@TripId, @FirstStopId, @SecondStopId, @StartDateTime, @EndDateTime);
 END
 GO
 
@@ -298,8 +298,7 @@ CREATE OR ALTER PROCEDURE UpdateTripSegmentById
 	@FirstStopId int = NULL,
 	@SecondStopId int = NULL,
 	@StartDateTime datetime = NULL,
-	@EndDateTime datetime = NULL,
-	@TripSegmentOrder int = NULL
+	@EndDateTime datetime = NULL
 AS
 BEGIN
 	UPDATE [TripSegment]
@@ -308,8 +307,7 @@ BEGIN
 			FirstStopId = COALESCE(@FirstStopId, FirstStopId),
 			SecondStopId = COALESCE(@SecondStopId, SecondStopId),
 			StartDateTime = COALESCE(@StartDateTime, StartDateTime),
-			EndDateTime = COALESCE(@EndDateTime, EndDateTime),
-			TripSegmentOrder = COALESCE(@TripSegmentOrder, TripSegmentOrder)
+			EndDateTime = COALESCE(@EndDateTime, EndDateTime)
 		WHERE Id = @TripSegmentId;
 END
 GO
@@ -350,6 +348,28 @@ GO
 
 BULK INSERT LineStop
 FROM 'C:\Users\richa\Desktop\sql-projects\LouisvilleRail\LineStops.csv'
+WITH
+(
+	FIRSTROW = 2,
+	FIELDTERMINATOR = ',',
+	ROWTERMINATOR = '\n',
+	TABLOCK
+);
+GO
+
+BULK INSERT Trip
+FROM 'C:\Users\richa\Desktop\sql-projects\LouisvilleRail\Trips.csv'
+WITH
+(
+	FIRSTROW = 2,
+	FIELDTERMINATOR = ',',
+	ROWTERMINATOR = '\n',
+	TABLOCK
+);
+GO
+
+BULK INSERT TripSegment
+FROM 'C:\Users\richa\Desktop\sql-projects\LouisvilleRail\TripSegments.csv'
 WITH
 (
 	FIRSTROW = 2,
