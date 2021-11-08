@@ -182,6 +182,8 @@ CREATE OR ALTER PROCEDURE DeleteStopById
 	@StopId int
 AS
 BEGIN
+	DELETE FROM TripSegment WHERE FirstStopId = @StopId OR SecondStopId = @StopId;
+	DELETE FROM LineStop WHERE StopId = @StopId;
 	DELETE FROM [Stop] WHERE Id = @StopId;
 END
 GO
