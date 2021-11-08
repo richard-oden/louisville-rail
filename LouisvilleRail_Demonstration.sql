@@ -45,3 +45,25 @@ GO
 EXEC DeleteStopById
 	@StopId = 85;
 GO
+
+
+-- LineStop:
+EXEC CreateLineStop
+	@LineId = 3,
+	@StopId = 11,
+	@LineStopOrder = 23;
+GO
+
+EXEC ReadLineStopById
+	@LineStopId = 109;
+GO
+
+EXEC UpdateLineStopById
+	@LineStopId = 49,
+	@LineId = 4,
+	@LineStopOrder = 21;
+GO
+
+EXEC DeleteLineStopById
+	@LineStopId = 21;
+GO

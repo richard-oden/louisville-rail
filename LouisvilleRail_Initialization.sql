@@ -193,10 +193,10 @@ GO
 CREATE OR ALTER PROCEDURE CreateLineStop
 	@LineId int,
 	@StopId int,
-	@StopOrder int
+	@LineStopOrder int
 AS
 BEGIN
-	INSERT INTO LineStop VALUES (@LineId, @StopId, @StopOrder);
+	INSERT INTO LineStop VALUES (@LineId, @StopId, @LineStopOrder);
 END
 GO
 
