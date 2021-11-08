@@ -53,8 +53,8 @@ GO
 CREATE TABLE TripSegment (
 	Id int IDENTITY PRIMARY KEY,
 	TripId int NOT NULL FOREIGN KEY REFERENCES Trip(Id),
-	FirstStopId int NOT NULL FOREIGN KEY REFERENCES LineStop(Id),
-	SecondStopId int NOT NULL FOREIGN KEY REFERENCES LineStop(Id),
+	FirstStopId int NOT NULL FOREIGN KEY REFERENCES [Stop](Id),
+	SecondStopId int NOT NULL FOREIGN KEY REFERENCES [Stop](Id),
 	StartDateTime datetime,
 	EndDateTime datetime,
 	
@@ -134,6 +134,7 @@ CREATE OR ALTER PROCEDURE DeleteLineById
 	@LineId int 
 AS
 BEGIN
+	DELETE FROM LineStop WHERE LineId = @LineId;
 	DELETE FROM Line WHERE Id = @LineId;
 END
 GO
