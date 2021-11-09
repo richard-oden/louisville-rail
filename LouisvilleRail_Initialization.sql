@@ -269,12 +269,13 @@ CREATE OR ALTER PROCEDURE DeleteTripById
 	@TripId int
 AS
 BEGIN
+	DELETE FROM TripSegment WHERE TripId = @TripId;
 	DELETE FROM Trip WHERE Id = @TripId;
 END
 GO
 
 
--- Trip Segment:
+-- TripSegment:
 CREATE OR ALTER PROCEDURE CreateTripSegment
 	@TripId int,
 	@FirstStopId int,

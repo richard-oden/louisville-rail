@@ -67,3 +67,44 @@ GO
 EXEC DeleteLineStopById
 	@LineStopId = 21;
 GO
+
+
+-- Trip:
+EXEC CreateTrip
+	@StartDateTime = '2021/11/09 5:59',
+	@EndDateTime = '2021/11/09 8:00'
+GO
+
+EXEC ReadTripById
+	@TripId = 1;
+GO
+
+EXEC UpdateTripById
+	@TripId = 2,
+	@StartDateTime = '2021/11/03 19:01'
+GO
+
+EXEC DeleteTripById
+	@TripId = 21;
+GO
+
+-- TripSegment:
+EXEC CreateTripSegment
+	@LineId = 3,
+	@StopId = 11,
+	@TripSegmentOrder = 23;
+GO
+
+EXEC ReadTripSegmentById
+	@TripSegmentId = 109;
+GO
+
+EXEC UpdateTripSegmentById
+	@TripSegmentId = 49,
+	@LineId = 4,
+	@TripSegmentOrder = 21;
+GO
+
+EXEC DeleteTripSegmentById
+	@TripSegmentId = 21;
+GO
