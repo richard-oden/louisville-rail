@@ -129,6 +129,19 @@ WHERE l.Id = 6
 ORDER BY ls.LineStopOrder;
 GO
 
+-- Get all stops with connections to other lines
+SELECT
+	s.[Name],
+	s.[Address],
+	COUNT(DISTINCT ls.LineId) as [Number of Connections]
+FROM [Stop] s
+	LEFT JOIN LineStop ls ON s.Id = ls.StopId
+	LEFT JOIN Line l ON ls.LineId = l.Id
+GROUP BY ls.StopId, s.[Name], s.[Address]
+HAVING COUNT(DISTINCT ls.LineId) > 1
+ORDER BY s.[Name];
+GO
+
 -- Get the 5 closest stops to Van Dyke Park, in Jeffersonville
 DECLARE @myLat decimal(8,6)
 DECLARE @myLon decimal(9,6)
