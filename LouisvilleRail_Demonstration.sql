@@ -109,3 +109,18 @@ GO
 EXEC DeleteTripSegmentById
 	@TripSegmentId = 35;
 GO
+
+---------------------
+--- BONUS QUERIES ---
+---------------------
+
+-- Get all stops on the Olmsted Streetcar line
+SELECT
+	s.[Name],
+	s.[Address]
+FROM [Stop] s
+LEFT JOIN LineStop ls ON s.Id = ls.StopId
+LEFT JOIN Line l ON ls.LineId = l.Id
+WHERE l.Id = 6
+ORDER BY ls.LineStopOrder;
+GO
