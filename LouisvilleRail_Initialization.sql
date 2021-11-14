@@ -42,6 +42,14 @@ CREATE TABLE LineStop (
 	CHECK (LineStopOrder > 0));
 GO
 
+CREATE NONCLUSTERED INDEX IX_LineStop_LineId
+	ON LineStop(LineId ASC);
+GO
+
+CREATE NONCLUSTERED INDEX IX_LineStop_StopId
+	ON LineStop(StopId ASC);
+GO
+
 CREATE TABLE Trip (
 	Id int IDENTITY PRIMARY KEY,
 	StartDateTime datetime,
@@ -356,7 +364,7 @@ GO
 ---------------------
 
 BULK INSERT Line
-FROM 'C:\Users\richa\Desktop\sql-projects\LouisvilleRail\Lines.csv'
+FROM 'C:\LouisvilleRail\Lines.csv'
 WITH
 (
 	FIRSTROW = 2,
@@ -367,7 +375,7 @@ WITH
 GO
 
 BULK INSERT [Stop]
-FROM 'C:\Users\richa\Desktop\sql-projects\LouisvilleRail\Stops.csv'
+FROM 'C:\LouisvilleRail\Stops.csv'
 WITH
 (
 	FIRSTROW = 2,
@@ -378,7 +386,7 @@ WITH
 GO
 
 BULK INSERT LineStop
-FROM 'C:\Users\richa\Desktop\sql-projects\LouisvilleRail\LineStops.csv'
+FROM 'C:\LouisvilleRail\LineStops.csv'
 WITH
 (
 	FIRSTROW = 2,
@@ -389,7 +397,7 @@ WITH
 GO
 
 BULK INSERT Trip
-FROM 'C:\Users\richa\Desktop\sql-projects\LouisvilleRail\Trips.csv'
+FROM 'C:\LouisvilleRail\Trips.csv'
 WITH
 (
 	FIRSTROW = 2,
@@ -400,7 +408,7 @@ WITH
 GO
 
 BULK INSERT TripSegment
-FROM 'C:\Users\richa\Desktop\sql-projects\LouisvilleRail\TripSegments.csv'
+FROM 'C:\LouisvilleRail\TripSegments.csv'
 WITH
 (
 	FIRSTROW = 2,
