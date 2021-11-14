@@ -129,7 +129,7 @@ WHERE l.Id = 6
 ORDER BY ls.LineStopOrder;
 GO
 
--- Get the 5 closest stops to my location
+-- Get the 5 closest stops to Van Dyke Park, in Jeffersonville
 DECLARE @myLat decimal(8,6)
 DECLARE @myLon decimal(9,6)
 SET @myLat = 38.267969591380144
@@ -141,4 +141,10 @@ SELECT TOP 5
 	(SELECT [dbo].GetFormattedDistanceInFeet(@myLat, @myLon, Latitude, Longitude)) as Distance
 FROM [Stop]
 ORDER BY (SELECT [dbo].GetDistanceInFeet(@myLat, @myLon, Latitude, Longitude));
+GO
+
+-- Get average duration of trips
+SELECT
+	AVG(DATEDIFF(minute, StartDateTime, EndDateTime)) as [Average Trip Duration in Minutes]
+FROM Trip;
 GO
