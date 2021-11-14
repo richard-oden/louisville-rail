@@ -156,6 +156,17 @@ FROM [Stop]
 ORDER BY (SELECT [dbo].GetDistanceInFeet(@myLat, @myLon, Latitude, Longitude));
 GO
 
+-- Get all stops that were visited on the Trip with an Id of 1
+SELECT DISTINCT
+	s.[Name],
+	s.[Address]
+FROM TripSegment ts
+	LEFT JOIN Trip t ON ts.TripId = t.Id
+	LEFT JOIN [Stop] s ON ts.FirstStopId = s.Id OR ts.SecondStopId = s.Id
+WHERE t.Id = 1
+GO
+
+
 -- Get average duration of trips
 SELECT
 	AVG(DATEDIFF(minute, StartDateTime, EndDateTime)) as [Average Trip Duration in Minutes]
