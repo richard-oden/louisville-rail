@@ -69,29 +69,56 @@ GO
 -- HELPER FUNCTIONS --
 ----------------------
 
-CREATE OR ALTER FUNCTION GetDistanceInFeet
+CREATE FUNCTION GetDistanceInFeet
 (   
     @Lat1 decimal(8,6), 
 	@Lon1 decimal(9,6), 
 	@Lat2 decimal(8,6), 
 	@Lon2 decimal(9,6)
 )
-RETURNS TABLE 
+RETURNS int 
 AS
-RETURN 
-    SELECT GEOGRAPHY::Point(@Lat1, @Lon1, 4738).STDistance(GEOGRAPHY::Point(@Lat2, @Lon2, 4738))
-	AS DistanceInFeet;
+BEGIN 
+	DECLARE @DistanceInFeet float
+    SET @DistanceInFeet = GEOGRAPHY::Point(@Lat1, @Lon1, 4738).STDistance(GEOGRAPHY::Point(@Lat2, @Lon2, 4738))
+	
+	RETURN @DistanceInFeet
+END;
 GO
 
-CREATE OR ALTER FUNCTION FormatDistance
+CREATE FUNCTION FormatDistance
 (
 	@DistanceInFeet float
 )
-RETURNS TABLE
+RETURNS varchar(255)
 AS
-RETURN
-	SELECT IIF(@DistanceInFeet >= 5280, ROUND(@DistanceInFeet / 5280, 2) + ' miles', @DistanceInFeet + ' feet')
-	AS FormattedDistance;
+BEGIN
+	DECLARE @FormattedDistance varchar(255)
+	SET @FormattedDistance = (SELECT IIF(@DistanceInFeet >= 5280, 
+		CAST(ROUND(@DistanceInFeet / 5280, 2) AS varchar(255)) + ' miles', 
+		CAST(@DistanceInFeet AS varchar(255)) + ' feet'))
+	
+	RETURN @FormattedDistance
+END;
+GO
+
+CREATE FUNCTION GetFormattedDistanceInFeet
+(
+	@Lat1 decimal(8,6), 
+	@Lon1 decimal(9,6), 
+	@Lat2 decimal(8,6), 
+	@Lon2 decimal(9,6)
+)
+RETURNS varchar(255)
+AS
+BEGIN
+	DECLARE @DistanceInFeet float
+	DECLARE @FormattedDistanceInFeet varchar(255)
+	SET @DistanceInFeet = (SELECT [dbo].[GetDistanceInFeet](@Lat1, @Lon1, @Lat2, @Lon2))
+	SET @FormattedDistanceInFeet = (SELECT [dbo].[FormatDistance](@DistanceInFeet))
+
+	RETURN @FormattedDistanceInFeet
+END;
 GO
 
 ---------------------

@@ -26,6 +26,7 @@ GO
 
 
 --Stop:
+--(I recommend executing LouisvilleRail_Initialization again before running these.)
 EXEC CreateStop 
 	@StopName = 'Big Four Bridge', 
 	@StopAddress = '1101 River Rd Louisville KY 40202',
@@ -48,6 +49,7 @@ GO
 
 
 -- LineStop:
+--(I recommend executing LouisvilleRail_Initialization again before running these.)
 EXEC CreateLineStop
 	@LineId = 3,
 	@StopId = 11,
@@ -70,6 +72,7 @@ GO
 
 
 -- Trip:
+--(I recommend executing LouisvilleRail_Initialization again before running these.)
 EXEC CreateTrip
 	@StartDateTime = '2021/11/09 5:59:30',
 	@EndDateTime = '2021/11/09 8:00:00'
@@ -113,14 +116,29 @@ GO
 ---------------------
 --- BONUS QUERIES ---
 ---------------------
+--(I recommend executing LouisvilleRail_Initialization again before running these.)
 
 -- Get all stops on the Olmsted Streetcar line
 SELECT
 	s.[Name],
 	s.[Address]
 FROM [Stop] s
-LEFT JOIN LineStop ls ON s.Id = ls.StopId
-LEFT JOIN Line l ON ls.LineId = l.Id
+	LEFT JOIN LineStop ls ON s.Id = ls.StopId
+	LEFT JOIN Line l ON ls.LineId = l.Id
 WHERE l.Id = 6
 ORDER BY ls.LineStopOrder;
+GO
+
+-- Get the 5 closest stops to my location
+DECLARE @myLat decimal(8,6)
+DECLARE @myLon decimal(9,6)
+SET @myLat = 38.267969591380144
+SET @myLon = -85.74217083299392
+
+SELECT TOP 5
+	[Name],
+	[Address],
+	(SELECT [dbo].GetFormattedDistanceInFeet(@myLat, @myLon, Latitude, Longitude)) as Distance
+FROM [Stop]
+ORDER BY (SELECT [dbo].GetDistanceInFeet(@myLat, @myLon, Latitude, Longitude));
 GO
