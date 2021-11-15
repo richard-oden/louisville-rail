@@ -3,7 +3,7 @@
 This is a database that is meant to represent a hypothetical rail network for the Louisville metro area, based on [this map](https://www.leoweekly.com/2019/06/65327/) created by Luis Huber-Calvo and published in Leo Weekly. This was completed as part of the Code Louisville Sept. 2021 SQL class.
 
 ## Installation
-If using Windows, place the `LouisvilleRail` folder in your C drive root directory.
+If using Windows, place the `louisville-rail` folder in your C drive root directory.
 
 If not using Windows, or if you wish to move the project to a different folder, you will need to find and replace all instances of `C:\` with your desired location, including the ending backslash (e.g., `D:\Databases\` or `C:\users\Me\Desktop\`). In SQL Server Management Studio, the find and replace menu can be brought up by pressing CTRL+H.
 
